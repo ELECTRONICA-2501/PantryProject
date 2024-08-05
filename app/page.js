@@ -3,7 +3,7 @@ import {Box, Typography, Modal, Stack, TextField, Button} from '@mui/material'
 import Image from 'next/image'
 import {useState, useEffect} from 'react'
 import {firestore} from '@/firebase'
-import { collection, getDocs, query, setDoc, doc, deleteDoc} from 'firebase/firestore'
+import { collection, getDocs, getDoc, query, setDoc, doc, deleteDoc} from 'firebase/firestore'
 
 
 
@@ -29,7 +29,7 @@ export default function Home() {
   //Add items
   const addItem = async (item) =>{
     const docRef  =doc(collection(firestore,'inventory'),item)
-    const docSnap = await getDoc(decRef)
+    const docSnap = await getDoc(docRef)
 
     if (docSnap.exists()){
       const{quantity} = docSnap.data()  
@@ -45,7 +45,7 @@ export default function Home() {
   //Delete items
   const removeItem = async (item) =>{
     const docRef  =doc(collection(firestore,'inventory'),item)
-    const docSnap = await getDoc(decRef)
+    const docSnap = await getDoc(docRef)
 
     if (docSnap.exists()){
       const{quantity} = docSnap.data()  
@@ -55,6 +55,7 @@ export default function Home() {
         await setDoc(docRef, {quantity: quantity -1 })
       }
     }
+    await updateInventory()
   }
 useEffect(() => {
   updateInventory()
@@ -89,15 +90,15 @@ useEffect(() => {
           sx={{transform:"translate(-50%,-50%)"}}
           >
             <Typography variant = "h6"> Add Item</Typography>
-            <Stack width="100%" direction ="row" spacing = {2}>
+            <Stack width="100%" direction ="row" spacing ={2}>
               <TextField
-                variant = 'outlined'
+                variant = "outlined"
                 fullWidth
                 value={itemName}
-                onChanges={(e)=>{
+                onChange={(e)=>{
                   setItemName(e.target.value)
                 }}
-              ></TextField>
+              />
               <Button
                 variant = "outlined"
                 onClick={() => {
@@ -105,7 +106,8 @@ useEffect(() => {
                 setItemName('') 
                 handleClose() 
               }}
-              > Add </Button>.
+              > Add 
+              </Button>.
             </Stack>
           </Box>
       </Modal>
@@ -128,8 +130,7 @@ useEffect(() => {
             <Typography variant ='h2' color = "#333">
               Inventory Items
             </Typography>
-          </Box>
-        </Box>
+          </Box>      
         <Stack width = "800px" height = "300px" spacing ={2} overflow="auto">
           {inventory.map(({name, quantity}) => (
             <Box
@@ -138,20 +139,33 @@ useEffect(() => {
               minHeight="150px"              
               display="flex"
               alignItems="center"
-              justifyContent="center"
-              bgcolor="#f0f0f0"
+              justifyContent="space-between"
+              bgColor="#f0f0f0"
               padding={5}
             >
-              <Typography 
-                variant ='h3' 
-                color = "#333"
-                textAlign="center"  
-              >
+              <Typography variant ="h3" color ="#333" textAlign="center">
                 {name.charAt(0).toUpperCase() + name.slice(1)}
               </Typography>
-            </Box>
+
+              <Typography variant ="h3" color ="#333" textAlign="center">
+                {quantity}
+              </Typography>
+              <Stack direction = "row" spacing={2}>
+              <Button variant="contained" onClick={() => {
+                addItem(name)              
+              }}> 
+                Add
+              </Button>
+              <Button variant="contained" onClick={() => {
+                removeItem(name)              
+              }}> 
+                Remove
+              </Button>
+              </Stack> 
+            </Box> 
           ))}
         </Stack>
+      </Box>
     </Box>     
   ) 
 }
